@@ -38,6 +38,7 @@ Control de LEDs con Arduino
 Se utiliza la librería OpenCV: 
 ```python
 cap = cv2.VideoCapture(0)
+https://github.com/user-attachments/assets/0cd02af2-8c3a-4d3e-9833-5c3245620db0
 ```
 Cada frame es procesado individualmente.
 
