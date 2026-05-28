@@ -237,6 +237,7 @@ void loop() {
   }
 }
 ```
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/5d76d023-4311-450b-af01-a8b889dcd5c5" />
 
 ---
 
@@ -267,6 +268,7 @@ COMANDO VOZ             →  TRAMA SERIAL
 "encender luces cocina" →  L_ON\n
 "apagar luces cocina"   →  L_OFF\n
 ```
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/193de556-836d-4ce0-b85d-a74726dde3f8" />
 
 ---
 
@@ -282,6 +284,8 @@ COMANDO VOZ             →  TRAMA SERIAL
 | Persiana | Servo motor | Sube/baja automáticamente |
 | Reloj | OLED 1.5" 128x128 | Muestra hora en tiempo real |
 | Asistente de Voz | Micrófono + Python | Control hands-free |
+
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/cd4aac41-b6ac-4de4-b253-ced1914b491c" />
 
 ---
 
@@ -305,6 +309,7 @@ Arduino Pin G  →  LED RGB (Pin G)
 Arduino Pin B  →  LED RGB (Pin B)
 GND            →  Cátodo común (-)
 ```
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/981b8969-59dd-4ddb-b4e7-640d04bb26e5" />
 
 ---
 
@@ -321,6 +326,8 @@ GND            →  Cátodo común (-)
 | Cuadro Arte | OLED | Muestra arte generativo dinámico |
 | Comedor | LEDs | Iluminación ambiente |
 | Asistente Voz | Micrófono + Python | Control de todos los elementos |
+
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/dcd7c52a-e0d9-4941-93b2-d531b5dda1f7" />
 
 ---
 
