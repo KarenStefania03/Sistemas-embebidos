@@ -664,6 +664,4 @@ casa-domotica/
 **Docente:** Diego Alejandro Barragán Vargas — Ingeniero Electrónico, Magíster en Ingeniería (UDFJC)
 **Alumnos:** Lina Contreras, Brandon Andres Leon, Samuel Rojas, Luis Naranjo, Carlos Castro y Karen Rivera
 
----
 
-*Experimenta · Conecta*
