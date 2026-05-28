@@ -1,4 +1,4 @@
-# 🏠 Casa Domótica Inteligente — Proyecto Final
+# Casa Domótica Inteligente — Proyecto Final
 ### Aplicaciones en Sistemas Embebidos | Fundación Universitaria Compensar
 
 > Sistema domótico completo con control por voz, visión artificial (YOLO) y tablero de visualización en la nube. Integra Arduino, Python y múltiples módulos inteligentes para automatizar una casa completa.
@@ -72,8 +72,9 @@ Este proyecto implementa una **casa domótica completa** con 5 módulos intelige
 ---
 
 ## Módulos de la Casa
+---------------------------------
 
-### 🚗 Garaje Inteligente / Parqueadero
+### Garaje Inteligente / Parqueadero
 
 **Función:** Detecta vehículos con cámara y YOLO. Abre/cierra la puerta automáticamente según la ocupación del parqueadero.
 
@@ -269,7 +270,7 @@ COMANDO VOZ             →  TRAMA SERIAL
 
 ---
 
-### 🛏️ Habitación Inteligente
+### Habitación Inteligente
 
 **Función:** Gestiona la iluminación, la persiana motorizada y muestra un reloj en pantalla OLED 128x128. Control mediante asistente de voz.
 
@@ -284,7 +285,7 @@ COMANDO VOZ             →  TRAMA SERIAL
 
 ---
 
-### 🚿 Baño Inteligente
+### Baño Inteligente
 
 **Función:** Cambia la iluminación RGB del baño según el modo (Mañana / Spa / Noche) mediante comandos de voz. Muestra el modo activo en una pantalla OLED pequeña.
 
@@ -307,7 +308,7 @@ GND            →  Cátodo común (-)
 
 ---
 
-### 🎮 Sala Inteligente
+### Sala Inteligente
 
 **Función:** Módulo de entretenimiento con piano digital, televisor de juegos (pantalla LCD 16x2), cuadro de arte dinámico (OLED) y comedor. Control por voz.
 
@@ -323,7 +324,7 @@ GND            →  Cátodo común (-)
 
 ---
 
-### ☁️ Nube y Dashboard
+### Nube y Dashboard
 
 **Función:** Centraliza todos los datos de los módulos, los procesa con un flujo ETL y los visualiza en un dashboard en tiempo real.
 
@@ -652,7 +653,7 @@ casa-domotica/
 
 ## Video Demostrativo
 
-🎬 [Ver demostración en YouTube](https://youtu.be/TZLvSnj9IYc)
+
 
 ---
 
@@ -661,6 +662,7 @@ casa-domotica/
 **Curso:** Aplicaciones en Sistemas Embebidos  
 **Institución:** Fundación Universitaria Compensar  
 **Docente:** Diego Alejandro Barragán Vargas — Ingeniero Electrónico, Magíster en Ingeniería (UDFJC)
+**Alumnos:** Lina Contreras, Brandon Andres Leon, Samuel Rojas, Luis Naranjo, Carlos Castro y Karen Rivera
 
 ---
 
