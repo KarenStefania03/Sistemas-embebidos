@@ -520,17 +520,17 @@ https://youtube.com/shorts/s3X5MbV8rTk?feature=share
 
 # Autores
 
-Karen Stefania Rivera Carrero
+* Karen Stefania Rivera Carrero
 
-Lina Marcela Contreras Sanabria
+* Lina Marcela Contreras Sanabria
 
-Luis Alejandro Naranjo Garavito
+* Luis Alejandro Naranjo Garavito
 
-Carlos Alberto Castro Castillo
+* Carlos Alberto Castro Castillo
 
-Samuel Felipe Rojas Heredia
+* Samuel Felipe Rojas Heredia
 
-Brandon Andres Leon Caro
+* Brandon Andres Leon Caro
 
 Proyecto desarrollado para: Diego Alejandro Barragan Vargas
 
