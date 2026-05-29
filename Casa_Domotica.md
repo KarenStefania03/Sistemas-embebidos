@@ -1,674 +1,541 @@
-# Casa Domótica Inteligente — Proyecto Final
-### Aplicaciones en Sistemas Embebidos | Fundación Universitaria Compensar
+# CASA INTELIGENTE
 
-> Sistema domótico completo con control por voz, visión artificial (YOLO) y tablero de visualización en la nube. Integra Arduino, Python y múltiples módulos inteligentes para automatizar una casa completa.
-
----
-
-## 📋 Tabla de Contenidos
-
-1. [Descripción General](#descripción-general)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Módulos de la Casa](#módulos-de-la-casa)
-   - [Garaje Inteligente (Parqueadero)](#-garaje-inteligente--parqueadero)
-   - [Cocina Inteligente](#-cocina-inteligente)
-   - [Habitación Inteligente](#-habitación-inteligente)
-   - [Baño Inteligente](#-baño-inteligente)
-   - [Sala Inteligente](#-sala-inteligente)
-   - [Nube y Dashboard](#-nube-y-dashboard)
-4. [Control por Voz](#control-por-voz)
-5. [Protocolo de Comunicación Serial](#protocolo-de-comunicación-serial)
-6. [Hardware y Componentes](#hardware-y-componentes)
-7. [Instalación y Dependencias](#instalación-y-dependencias)
-8. [Ejecución del Sistema](#ejecución-del-sistema)
-9. [Plan de Pruebas](#plan-de-pruebas)
-10. [Estructura del Repositorio](#estructura-del-repositorio)
+## Sistemas Embebidos - Ingeniería de Telecomunicaciones - UCompensar
 
 ---
 
-## Descripción General
+# Descripción General
 
-Este proyecto implementa una **casa domótica completa** con 5 módulos inteligentes interconectados. Cada módulo tiene sensores, actuadores y un sistema de control que responde a comandos de voz. Los datos de todos los módulos se envían a la nube para visualización en tiempo real mediante un dashboard.
+Este proyecto consiste en una plataforma de automatización domótica desarrollada mediante sistemas embebidos, reconocimiento de voz offline, arquitectura IoT y monitoreo web centralizado.
 
-**Tecnologías clave:**
-- `Arduino UNO` — microcontrolador de control
-- `Python 3` — lógica principal, reconocimiento de voz, visión artificial
-- `YOLO (Ultralytics)` — detección de vehículos en tiempo real
-- `OpenCV` — procesamiento de video
-- `SpeechRecognition` — reconocimiento de voz en español
-- `PySerial` — comunicación USB entre Python y Arduino
+La solución implementa una arquitectura distribuida basada en múltiples microcontroladores Arduino controlados desde una aplicación central desarrollada en Python. El sistema permite gestionar diferentes zonas de una vivienda mediante comandos de voz y visualizar el estado de cada módulo desde un dashboard web en tiempo real.
 
----
+El proyecto integra tecnologías de:
 
-## Arquitectura del Sistema
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CAPA DE PRESENTACIÓN                      │
-│   Dashboard Nube  │  Monitor Serial  │  LEDs Indicadores    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                    CAPA DE APLICACIÓN                        │
-│     Python (YOLO + Voz + OpenCV + PySerial)                 │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│               CAPA DE COMUNICACIÓN                           │
-│              USB Serial (9600 baud)                          │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│              CAPA DE CONTROL (Arduino UNO)                   │
-│   Lógica de control │ Gestión de pines │ Temporizadores      │
-│                                                              │
-│   Pin 7  → Relé (Motor Parqueadero)                         │
-│   Pin 11 → LED Verde (Puerta Abierta)                       │
-│   Pin 12 → LED Rojo (Puerta Cerrada)                        │
-│   Pins varios → Motores, LEDs RGB, Buzzer de cada módulo    │
-└─────────────────────────────────────────────────────────────┘
-```
+* sistemas embebidos,
+* inteligencia artificial,
+* automatización,
+* comunicación serial,
+* interfaces web,
+* e Internet de las Cosas (IoT).
 
 ---
 
-## Módulos de la Casa
----------------------------------
+# Objetivos del Proyecto
 
-### Garaje Inteligente / Parqueadero
+## Objetivo General
 
-**Función:** Detecta vehículos con cámara y YOLO. Abre/cierra la puerta automáticamente según la ocupación del parqueadero.
+Diseñar e implementar una plataforma domótica inteligente basada en sistemas embebidos y reconocimiento de voz para automatizar diferentes áreas de una vivienda mediante una arquitectura centralizada y escalable.
 
-#### ¿Qué es YOLO?
-YOLO (*You Only Look Once*) es un algoritmo de visión artificial basado en redes neuronales convolucionales (CNN) que detecta objetos en tiempo real procesando la imagen completa en una sola pasada. En este proyecto identifica autos, motos, camiones y buses.
+---
 
-#### Componentes del Garaje
+## Objetivos Específicos
 
-| Componente | Especificación | Función |
-|---|---|---|
-| Microcontrolador | Arduino UNO (ATmega328P) | Control del motor y LEDs |
-| Relé | SRD-05VDC 5V (Pin 7) | Activa/desactiva el motor |
-| Motor DC | 9V, 100 RPM | Mueve la puerta (sube/baja) |
-| Cámara | Celular (IP Webcam) | Captura video para YOLO |
-| LED Verde | Pin 11 | Indica puerta abierta |
-| LED Rojo | Pin 12 | Indica puerta cerrada |
+* Implementar reconocimiento de voz offline utilizando inteligencia artificial.
+* Automatizar zonas específicas de una vivienda mediante actuadores físicos.
+* Desarrollar un dashboard web de monitoreo en tiempo real.
+* Integrar múltiples microcontroladores Arduino mediante comunicación serial.
+* Diseñar una arquitectura modular y escalable para futuras ampliaciones.
+* Aplicar conceptos de IoT y sistemas embebidos en un entorno domótico funcional.
 
-#### Protocolo de Comandos Serial
+---
 
-```
-COMANDO PYTHON → ARDUINO     ACCIÓN
-─────────────────────────────────────────────────
-"G_OPEN\n"    →  Activa relé (Pin 7), gira motor 5 seg hacia adelante
-                 LED Verde ON, LED Rojo OFF
-"G_CLOSE\n"   →  Activa relé (Pin 7), gira motor 5 seg en reversa
-                 LED Rojo ON, LED Verde OFF
-"ESTADO\n"    →  Arduino responde: "ABIERTO" o "CERRADO"
-```
+# Arquitectura del Sistema
 
-#### Diagrama de Flujo — Garaje
+La arquitectura implementada se basa en un modelo centralizado distribuido.
 
-```
-        ┌─────────────┐
-        │    INICIO   │
-        └──────┬──────┘
-               │
-        ┌──────▼──────────────┐
-        │ Inicializar Cámara  │
-        │ y Conexión Serial   │
-        └──────┬──────────────┘
-               │
-        ┌──────▼──────────────┐
-        │  YOLO detecta frame │◄─────────────┐
-        └──────┬──────────────┘              │
-               │                             │
-       ┌───────┼───────┐                     │
-       ▼       ▼       ▼                     │
-  Vehículo  Sin     Comando                  │
-  detectado vehículo  voz                    │
-       │       │       │                     │
-  ┌────▼──┐ ┌──▼────┐ ┌▼──────┐             │
-  │G_OPEN │ │G_CLOSE│ │Según  │             │
-  │Serial │ │Serial │ │frase  │             │
-  └────┬──┘ └──┬────┘ └┬──────┘             │
-       └───────┴────────┘                    │
-               │                             │
-        ┌──────▼──────────────┐              │
-        │  Esperar 5 seg      │──────────────┘
-        │  Repetir ciclo      │
-        └─────────────────────┘
+Python actúa como núcleo principal del sistema, encargándose de:
+
+* reconocimiento de voz,
+* procesamiento lógico,
+* gestión de estados,
+* comunicación serial,
+* y actualización del dashboard.
+
+Los Arduinos funcionan como nodos embebidos independientes responsables de ejecutar acciones físicas sobre actuadores y dispositivos electrónicos.
+
+---
+
+# Flujo General del Sistema
+
+```text
+Usuario
+   ↓
+Comando de voz
+   ↓
+Captura de audio
+   ↓
+Modelo IA Vosk
+   ↓
+Conversión voz → texto
+   ↓
+Python central
+   ↓
+Interpretación de comandos
+   ↓
+Comunicación serial USB
+   ↓
+Arduino correspondiente
+   ↓
+Actuadores físicos
+   ↓
+Actualización dashboard web
 ```
 
-#### Código Python — Detección con YOLO
+---
+
+# Tecnologías Utilizadas
+
+## Software
+
+| Tecnología  | Función                         |
+| ----------- | ------------------------------- |
+| Python      | Núcleo lógico del sistema       |
+| Flask       | Servidor web y dashboard        |
+| Vosk        | Reconocimiento de voz offline   |
+| HTML5       | Estructura de interfaz          |
+| CSS3        | Diseño visual del dashboard     |
+| PySerial    | Comunicación serial con Arduino |
+| SoundDevice | Captura de audio                |
+| JSON        | Procesamiento de respuestas IA  |
+
+---
+
+## Hardware
+
+| Componente             | Función                    |
+| ---------------------- | -------------------------- |
+| Arduino UNO            | Control embebido           |
+| Pantallas OLED SSD1306 | Visualización local        |
+| Servo SG90             | Automatización de persiana |
+| LEDs RGB               | Iluminación inteligente    |
+| Fuente 5V 2A           | Alimentación externa       |
+| Protoboard y cableado  | Integración electrónica    |
+
+---
+
+# Reconocimiento de Voz
+
+El sistema implementa reconocimiento de voz offline mediante Vosk.
+
+Vosk es una librería de inteligencia artificial especializada en reconocimiento automático de voz (ASR - Automatic Speech Recognition), optimizada para funcionamiento local sin dependencia de internet.
+
+---
+
+## Funcionamiento
+
+El micrófono captura audio continuamente mediante la librería `sounddevice`.
+
+Posteriormente:
+
+1. El audio es procesado por Vosk.
+2. Vosk convierte voz a texto.
+3. Python analiza el texto detectado.
+4. El sistema identifica comandos específicos.
+5. Se ejecuta la acción correspondiente.
+
+---
+
+## Modelo Utilizado
+
+```text
+vosk-model-small-es-0.42
+```
+
+Modelo preentrenado para reconocimiento de voz en español.
+
+---
+
+## Ventajas de la Solución Offline
+
+* No requiere conexión a internet.
+* Menor latencia.
+* Mayor privacidad.
+* Independencia de servicios externos.
+* Mejor compatibilidad con sistemas embebidos.
+
+---
+
+# Comunicación Serial
+
+La comunicación entre Python y Arduino se realiza mediante puertos seriales USB utilizando la librería `PySerial`.
+
+Cada Arduino permanece escuchando instrucciones enviadas desde el sistema central.
+
+---
+
+## Configuración
+
+Todos los microcontroladores trabajan a:
+
+```text
+9600 baudios
+```
+
+---
+
+## Ejemplo de Comunicación
+
+### Python
 
 ```python
-import cv2
-import serial
-import time
-from ultralytics import YOLO
-
-# Configuración
-PUERTO_SERIAL = 'COM4'
-BAUD_RATE = 9600
-CLASES_VEHICULOS = [2, 3, 5, 7]  # car, motorcycle, bus, truck en COCO
-
-modelo = YOLO('yolov8n.pt')
-arduino = serial.Serial(PUERTO_SERIAL, BAUD_RATE, timeout=1)
-time.sleep(2)
-
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    resultados = modelo(frame)
-    vehiculos_detectados = 0
-
-    for r in resultados:
-        for box in r.boxes:
-            if int(box.cls) in CLASES_VEHICULOS:
-                vehiculos_detectados += 1
-                x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-    if vehiculos_detectados > 0:
-        arduino.write(b"G_OPEN\n")
-    else:
-        arduino.write(b"G_CLOSE\n")
-
-    cv2.putText(frame, f"Vehiculos: {vehiculos_detectados}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.imshow("Garaje Inteligente", frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-arduino.close()
+habitacion.write(b"abrirpersiana\n")
 ```
 
-#### Código Arduino — Control del Garaje
+### Arduino
 
 ```cpp
-// Pines
-const int PIN_RELE = 7;
-const int PIN_LED_VERDE = 11;
-const int PIN_LED_ROJO = 12;
+if (comando == "abrirpersiana") {
 
-String comando = "";
+    moverPersiana();
 
-void setup() {
-  Serial.begin(9600);
-  pinMode(PIN_RELE, OUTPUT);
-  pinMode(PIN_LED_VERDE, OUTPUT);
-  pinMode(PIN_LED_ROJO, OUTPUT);
-  digitalWrite(PIN_LED_ROJO, HIGH); // Inicio: cerrado
-}
-
-void loop() {
-  if (Serial.available() > 0) {
-    comando = Serial.readStringUntil('\n');
-    comando.trim();
-
-    if (comando == "G_OPEN") {
-      digitalWrite(PIN_RELE, HIGH);
-      digitalWrite(PIN_LED_VERDE, HIGH);
-      digitalWrite(PIN_LED_ROJO, LOW);
-      delay(5000); // Motor gira 5 segundos
-      digitalWrite(PIN_RELE, LOW);
-      Serial.println("ABIERTO");
-    }
-
-    else if (comando == "G_CLOSE") {
-      digitalWrite(PIN_RELE, HIGH);
-      digitalWrite(PIN_LED_ROJO, HIGH);
-      digitalWrite(PIN_LED_VERDE, LOW);
-      delay(5000);
-      digitalWrite(PIN_RELE, LOW);
-      Serial.println("CERRADO");
-    }
-
-    else if (comando == "ESTADO") {
-      // Responde estado actual según último LEDs
-      if (digitalRead(PIN_LED_VERDE)) Serial.println("ABIERTO");
-      else Serial.println("CERRADO");
-    }
-  }
 }
 ```
-<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/5d76d023-4311-450b-af01-a8b889dcd5c5" />
 
 ---
 
-### 🍳 Cocina Inteligente
+# Distribución Modular
 
-**Función:** Controla por voz la iluminación, el extractor de aire, la estufa y la nevera de la cocina.
-
-#### Componentes
-
-| Elemento | Actuador | Comando de Voz |
-|---|---|---|
-| Estufa | LED (Pin) | "encender cocina" / "apagar cocina" |
-| Nevera | LED (Pin) | "encender nevera" / "apagar nevera" |
-| Extractor | Motor DC pequeño | "encender extractor" / "apagar extractor" |
-| Iluminación | LED blanco | "encender luces cocina" / "apagar luces cocina" |
-
-#### Tramas Seriales — Cocina
-
-```
-COMANDO VOZ             →  TRAMA SERIAL
-─────────────────────────────────────────
-"encender nevera"       →  N_ON\n
-"apagar nevera"         →  N_OFF\n
-"encender cocina"       →  E_ON\n
-"apagar cocina"         →  E_OFF\n
-"encender extractor"    →  EXT_ON\n
-"apagar extractor"      →  EXT_OFF\n
-"encender luces cocina" →  L_ON\n
-"apagar luces cocina"   →  L_OFF\n
-```
-<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/193de556-836d-4ce0-b85d-a74726dde3f8" />
+El sistema se divide en múltiples zonas independientes.
 
 ---
 
-### Habitación Inteligente
+## Arduino 1 - Baño Inteligente
 
-**Función:** Gestiona la iluminación, la persiana motorizada y muestra un reloj en pantalla OLED 128x128. Control mediante asistente de voz.
+Puerto serial:
 
-#### Componentes
+```text
+COM5
+```
 
-| Elemento | Hardware | Descripción |
-|---|---|---|
-| Iluminación | LED blanco | Luz principal de la habitación |
-| Persiana | Servo motor | Sube/baja automáticamente |
-| Reloj | OLED 1.5" 128x128 | Muestra hora en tiempo real |
-| Asistente de Voz | Micrófono + Python | Control hands-free |
+### Funcionalidades
 
-<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/cd4aac41-b6ac-4de4-b253-ced1914b491c" />
+* Modo SPA
+* Modo MAÑANA
+* Modo NOCHE
+* Iluminación RGB
+* Pantalla OLED
+
+### Modos
+
+| Modo   | Función              |
+| ------ | -------------------- |
+| SPA    | Ambiente relajante   |
+| MAÑANA | Iluminación matutina |
+| NOCHE  | Iluminación nocturna |
+
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/c19e7331-7ff3-499b-b213-25f578be6fe2" />
 
 ---
 
-### Baño Inteligente
+## Arduino 2 - Habitación Inteligente
 
-**Función:** Cambia la iluminación RGB del baño según el modo (Mañana / Spa / Noche) mediante comandos de voz. Muestra el modo activo en una pantalla OLED pequeña.
+Puerto serial:
 
-#### Modos de Iluminación
-
-| Modo | Color LED RGB | Comando de Voz |
-|---|---|---|
-| Modo Mañana | Azul | "modo mañana" |
-| Modo Spa | Rojo | "modo spa" |
-| Modo Noche | Verde | "modo noche" |
-
-#### Conexión del LED RGB
-
+```text
+COM6
 ```
-Arduino Pin R  →  LED RGB (Pin R)
-Arduino Pin G  →  LED RGB (Pin G)
-Arduino Pin B  →  LED RGB (Pin B)
-GND            →  Cátodo común (-)
-```
-<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/981b8969-59dd-4ddb-b4e7-640d04bb26e5" />
+
+### Funcionalidades
+
+* Persiana automática
+* Iluminación
+* Reloj OLED
+* Servo motor SG90
+
+### Actuadores
+
+| Actuador   | Función                  |
+| ---------- | ------------------------ |
+| Servo SG90 | Apertura/cierre persiana |
+| LEDs       | Iluminación habitación   |
+| OLED       | Visualización reloj      |
+
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/ccfa1e6d-1604-4ac4-a141-3c79ef37b09d" />
 
 ---
 
-### Sala Inteligente
+## Arduino 3 - Cocina y Parqueadero
 
-**Función:** Módulo de entretenimiento con piano digital, televisor de juegos (pantalla LCD 16x2), cuadro de arte dinámico (OLED) y comedor. Control por voz.
+Puerto serial:
 
-#### Elementos
+```text
+COM7
+```
 
-| Elemento | Hardware | Función |
-|---|---|---|
-| Piano | Piezobuzzer + botones | Toca notas musicales |
-| TV de Juegos | LCD 16x2 | Ejecuta 2 minijuegos |
-| Cuadro Arte | OLED | Muestra arte generativo dinámico |
-| Comedor | LEDs | Iluminación ambiente |
-| Asistente Voz | Micrófono + Python | Control de todos los elementos |
+### Cocina
 
-<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/dcd7c52a-e0d9-4941-93b2-d531b5dda1f7" />
+Funciones:
+
+* Nevera
+* Cocina eléctrica
+* Extractor
+* Luces
+
+<img width="900" height="1600" alt="image" src="https://github.com/user-attachments/assets/bd764853-72d7-4920-bdc7-2e393de2ea0b" />
+
+### Parqueadero
+
+Funciones:
+
+* Apertura automática
+* Cierre automático
+
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/0ed22a32-957c-4d32-8856-864ab62ea12b" />
 
 ---
 
-### Nube y Dashboard
+# Dashboard Web
 
-**Función:** Centraliza todos los datos de los módulos, los procesa con un flujo ETL y los visualiza en un dashboard en tiempo real.
+La interfaz gráfica fue desarrollada utilizando Flask, HTML y CSS.
 
-#### Flujo ETL
-
-```
-Base de Datos
-    │
-    ├── E (Extracción)   → Lee estados de cada módulo vía Serial/MQTT
-    ├── T (Transformación) → Normaliza y codifica los datos
-    └── L (Carga)         → Publica al dashboard en la nube
-```
-
-#### Dashboard
-- Muestra el estado en tiempo real de cada módulo (Garaje, Cocina, Habitación, Baño, Sala)
-- Gráficas históricas de actividad
-- Repositorio público en GitHub para acceso a todo el código
+El dashboard permite monitorear el estado global del sistema en tiempo real.
 
 ---
 
-## Control por Voz
+## Características
 
-El módulo de voz es el componente central que conecta todos los módulos. Escucha comandos en **español** mediante el micrófono y los transmite al Arduino vía USB Serial.
+* Arquitectura web cliente-servidor.
+* Monitoreo centralizado.
+* Interfaz modular.
+* Actualización automática.
+* Diseño responsive.
+* Integración dinámica con Python.
 
-### Módulo `voz_control.py` — Código Completo
+---
 
-```python
-"""
-Módulo de Control por Voz - Sistema Domótico
-Escucha comandos de voz a través del micrófono y los transmite
-vía puerto Serial a un microcontrolador.
-"""
-import sys
-import time
-import serial
-import speech_recognition as sr
+## Módulos Visuales
 
-# --- Configuración del Sistema ---
-PUERTO_SERIAL = 'COM4'
-BAUD_RATE = 9600
-TIEMPO_ESPERA = 1
+| Zona        | Información             |
+| ----------- | ----------------------- |
+| Baño        | Modo actual             |
+| Habitación  | Luces y persiana        |
+| Cocina      | Estados de dispositivos |
+| Parqueadero | Estado acceso           |
 
-def inicializar_conexion(puerto: str, baud_rate: int) -> serial.Serial:
-    """Inicializa y retorna la conexión serial de forma segura."""
-    try:
-        conexion = serial.Serial(puerto, baud_rate, timeout=TIEMPO_ESPERA)
-        time.sleep(2)  # Tiempo de estabilización del bootloader del Arduino
-        print(f"Conexión establecida en {puerto}.")
-        return conexion
-    except serial.SerialException:
-        print(f"Error: No se pudo abrir el puerto {puerto}. Verifique la conexión física.")
-        sys.exit(1)
+---
 
-def procesar_comando(texto: str, conexion: serial.Serial) -> None:
-    """Mapea el texto reconocido a tramas seriales y las transmite."""
-    comandos = {
-        "abrir parqueadero":    b"G_OPEN\n",
-        "cerrar parqueadero":   b"G_CLOSE\n",
-        "encender nevera":      b"N_ON\n",
-        "apagar nevera":        b"N_OFF\n",
-        "encender cocina":      b"E_ON\n",
-        "apagar cocina":        b"E_OFF\n",
-        "encender extractor":   b"EXT_ON\n",
-        "apagar extractor":     b"EXT_OFF\n",
-        "encender luces cocina": b"L_ON\n",
-        "apagar luces cocina":  b"L_OFF\n",
-    }
+## Actualización Automática
 
-    comando_ejecutado = False
-    for frase, trama in comandos.items():
-        if frase in texto:
-            conexion.write(trama)
-            print(f"Enviando orden asociada a: '{frase.upper()}'")
-            comando_ejecutado = True
-            break
+El dashboard actualiza estados periódicamente mediante recarga automática HTML:
 
-    if not comando_ejecutado:
-        print("Comando no registrado en la base de datos operativa.")
-
-def escuchar_comandos(reconocedor: sr.Recognizer, conexion: serial.Serial) -> None:
-    """Captura audio del micrófono y lo procesa mediante la API de Google."""
-    with sr.Microphone() as source:
-        print("\n--- ESPERANDO ORDEN ---")
-        reconocedor.adjust_for_ambient_noise(source, duration=0.5)
-
-        try:
-            audio = reconocedor.listen(source)
-            texto = reconocedor.recognize_google(audio, language="es-ES").lower()
-            print(f"Comandante dice: '{texto}'")
-            procesar_comando(texto, conexion)
-
-        except sr.UnknownValueError:
-            print("El sistema no pudo entender el audio.")
-        except sr.RequestError:
-            print("Error de conexión: Fallo en la API de reconocimiento de voz.")
-
-def main():
-    arduino = inicializar_conexion(PUERTO_SERIAL, BAUD_RATE)
-    reconocedor = sr.Recognizer()
-
-    try:
-        while True:
-            escuchar_comandos(reconocedor, arduino)
-    except KeyboardInterrupt:
-        print("\nSistema detenido por el usuario.")
-    finally:
-        if 'arduino' in locals() and arduino.is_open:
-            arduino.close()
-            print("Puerto serial cerrado de forma segura.")
-
-if __name__ == "__main__":
-    main()
-```
-
-### ¿Cómo funciona el reconocimiento de voz?
-
-```
-Micrófono (audio)
-       │
-       ▼
-sr.Recognizer.listen()        ← captura el audio
-       │
-       ▼
-recognize_google(audio, language="es-ES")  ← API Google convierte a texto
-       │
-       ▼
-procesar_comando(texto)       ← busca la frase en el diccionario
-       │
-       ▼
-conexion.write(trama)         ← envía bytes al Arduino por USB
-       │
-       ▼
-Arduino ejecuta acción        ← mueve motor, enciende LED, etc.
+```html
+<meta http-equiv="refresh" content="2">
 ```
 
 ---
 
-## Protocolo de Comunicación Serial
+# Problemas Encontrados y Soluciones
 
-Toda la comunicación entre Python y Arduino usa **USB Serial a 9600 baud**. Los comandos son cadenas de texto terminadas en `\n`.
+## Problema 1 - Servo Motor
 
-| Módulo | Trama | Acción Arduino |
-|---|---|---|
-| Garaje | `G_OPEN\n` | Motor avanza 5 seg, LED Verde ON |
-| Garaje | `G_CLOSE\n` | Motor retrocede 5 seg, LED Rojo ON |
-| Garaje | `ESTADO\n` | Responde ABIERTO/CERRADO |
-| Cocina | `N_ON\n` / `N_OFF\n` | Enciende/apaga LED de Nevera |
-| Cocina | `E_ON\n` / `E_OFF\n` | Enciende/apaga LED de Estufa |
-| Cocina | `EXT_ON\n` / `EXT_OFF\n` | Enciende/apaga motor extractor |
-| Cocina | `L_ON\n` / `L_OFF\n` | Enciende/apaga luz de cocina |
+### Problema
 
----
+El servo SG90 presentaba:
 
-## Hardware y Componentes
+* bajo torque,
+* movimiento errático,
+* reinicios.
 
-### Lista de Materiales (BOM)
+### Causa
 
-| Componente | Cantidad | Especificación | Módulo |
-|---|---|---|---|
-| Arduino UNO | 1+ | ATmega328P | Todos |
-| Relé 5V | 1 | SRD-05VDC | Garaje |
-| Motor DC | 1 | 9V, 100 RPM | Garaje |
-| Fuente de poder | 1 | 9V, 5A | Garaje |
-| Cámara | 1 | Celular (IP Webcam) | Garaje |
-| LED Verde | 1 | Pin 11 | Garaje |
-| LED Rojo | 1 | Pin 12 | Garaje |
-| LED RGB | 1 | Ánodo/Cátodo común | Baño |
-| Pantalla OLED pequeña | 1 | I2C | Baño |
-| Pantalla OLED 1.5" | 1 | 128x128 px | Habitación |
-| Servo motor | 1 | SG90 | Habitación |
-| LCD 16x2 | 1 | Con módulo I2C | Sala |
-| Piezobuzzer | 1 | Activo/Pasivo | Sala |
-| Micrófono USB | 1 | Compatible con Python | Control Voz |
+Insuficiente corriente desde el puerto USB del Arduino.
 
-### Diagrama de Conexiones — Garaje
+### Solución
 
-```
-GND COMÚN:
-Arduino GND ══ Fuente 9V(-) ══ Motor GND
+Implementación de:
 
-CONTROL:
-Arduino Pin 7  → Relé Coil+  → Motor ON/OFF
-Fuente 9V(+)   → Relé NO     → Motor(+)
-
-INDICADORES:
-Arduino Pin 11 → Resistencia 220Ω → LED Verde(+) → GND
-Arduino Pin 12 → Resistencia 220Ω → LED Rojo(+)  → GND
-```
+* fuente externa 5V 2A,
+* GND compartido,
+* alimentación independiente.
 
 ---
 
-## Instalación y Dependencias
+## Problema 2 - Comunicación Serial
 
-### Requisitos del sistema
-- Python 3.8+
-- Arduino IDE
-- Cable USB tipo A-B
+### Problema
 
-### Instalar librerías Python
+Bloqueo de puertos COM.
+
+### Solución
+
+Evitar uso simultáneo de:
+
+* Arduino Serial Monitor,
+* Flask,
+* Python serial.
+
+---
+
+## Problema 3 - Múltiples Pantallas OLED
+
+### Problema
+
+Conflicto de direcciones I2C.
+
+### Solución
+
+Separación modular utilizando múltiples Arduinos independientes.
+
+---
+
+# Escalabilidad
+
+La arquitectura fue diseñada para permitir futuras ampliaciones.
+
+---
+
+## Posibles Mejoras
+
+* Sensores de temperatura.
+* Sensores de humedad.
+* Cámaras IP.
+* Base de datos SQLite.
+* Históricos de eventos.
+* Aplicación móvil.
+* MQTT.
+* ESP32.
+* Integración cloud.
+* Automatización avanzada.
+* Machine Learning.
+* Control remoto.
+
+---
+
+# Instalación
+
+## Clonar repositorio
 
 ```bash
-pip install ultralytics opencv-python pyserial SpeechRecognition
+git clone <repositorio>
 ```
-
-> **Nota:** Para `SpeechRecognition` en Windows puede ser necesario instalar también `PyAudio`:
-> ```bash
-> pip install pyaudio
-> ```
-
-### Librerías utilizadas
-
-| Librería | Función |
-|---|---|
-| `ultralytics` (YOLO) | Detección de vehículos en tiempo real |
-| `opencv-python` | Captura y procesamiento de video |
-| `pyserial` | Comunicación USB Serial con Arduino |
-| `SpeechRecognition` | Reconocimiento de voz en español |
-| `time`, `sys` | Utilidades del sistema |
-
-### Instalar librerías Arduino
-
-Desde el **Gestor de Librerías** del Arduino IDE:
-- `Wire.h` (incluida por defecto) — para I2C (OLED, LCD)
-- `Adafruit SSD1306` — pantallas OLED
-- `LiquidCrystal I2C` — LCD 16x2
-- `Servo` (incluida por defecto) — servo motor persiana
 
 ---
 
-## Ejecución del Sistema
-
-### 1. Cargar firmware al Arduino
+## Instalar dependencias
 
 ```bash
-# Abrir Arduino IDE
-# Seleccionar: Herramientas → Puerto → COMx (el puerto de tu Arduino)
-# Seleccionar: Herramientas → Placa → Arduino UNO
-# Cargar el sketch correspondiente a cada módulo
+pip install flask pyserial vosk sounddevice
 ```
 
-### 2. Verificar el puerto serial
+---
 
-En Windows: Administrador de dispositivos → Puertos COM y LPT → Arduino UNO (COMx)
+## Descargar modelo Vosk
 
-Editar en `voz_control.py`:
-```python
-PUERTO_SERIAL = 'COM4'  # Cambiar por tu puerto real
+Descargar:
+
+```text
+vosk-model-small-es-0.42
 ```
 
-### 3. Ejecutar el módulo de voz
+y ubicarlo en la raíz del proyecto.
+
+---
+
+# Ejecución
+
+## Ejecutar sistema
 
 ```bash
-python voz_control.py
-```
-
-### 4. Ejecutar el módulo del garaje (YOLO)
-
-```bash
-python garaje_yolo.py
-```
-
-### 5. Comandos de voz disponibles
-
-Habla claramente en español. El sistema reconoce:
-
-```
-"abrir parqueadero"       → Abre la puerta del garaje
-"cerrar parqueadero"      → Cierra la puerta del garaje
-"encender nevera"         → Enciende la nevera (LED)
-"apagar nevera"           → Apaga la nevera
-"encender cocina"         → Enciende la estufa (LED)
-"apagar cocina"           → Apaga la estufa
-"encender extractor"      → Prende el ventilador extractor
-"apagar extractor"        → Apaga el extractor
-"encender luces cocina"   → Enciende iluminación de cocina
-"apagar luces cocina"     → Apaga iluminación de cocina
+python app.py
 ```
 
 ---
 
-## Plan de Pruebas
+## Dashboard local
 
-| Prueba | Método | Criterio de Aceptación |
-|---|---|---|
-| Hardware | Multímetro (continuidad) | GND común verificado, voltajes correctos |
-| Motor | Activación manual desde Serial | Gira en ambas direcciones sin ruidos |
-| Comunicación Serial | Monitor Serial Arduino IDE | Arduino responde a G_OPEN y G_CLOSE |
-| YOLO | Video en tiempo real | Detección de vehículos confiable (>80% conf.) |
-| Reconocimiento de voz | Prueba en entorno silencioso | Reconoce ≥8/10 comandos correctamente |
-| Integración | Ciclo completo | Apertura/cierre automático sin errores consecutivos |
-| Dashboard | Revisión de datos en nube | Todos los módulos reportan estado correctamente |
-
----
-
-## Estructura del Repositorio
-
-```
-casa-domotica/
-│
-├── README.md                    ← Este archivo
-│
-├── garaje/
-│   ├── garaje_yolo.py           ← Detección YOLO + control serial
-│   └── arduino_garaje.ino       ← Firmware Arduino (motor + LEDs)
-│
-├── cocina/
-│   └── arduino_cocina.ino       ← Firmware Arduino (estufa, nevera, extractor)
-│
-├── habitacion/
-│   └── arduino_habitacion.ino   ← Firmware Arduino (persiana, OLED, luz)
-│
-├── bano/
-│   └── arduino_bano.ino         ← Firmware Arduino (RGB, OLED, modos)
-│
-├── sala/
-│   └── arduino_sala.ino         ← Firmware Arduino (piano, LCD, arte)
-│
-├── voz/
-│   └── voz_control.py           ← Módulo central de control por voz
-│
-└── dashboard/
-    └── etl_dashboard.py         ← Extracción, transformación y carga a nube
+```text
+http://127.0.0.1:5000
 ```
 
 ---
 
-## Video Demostrativo
+## Dashboard en red local
 
-
+```text
+http://IP_LOCAL:5000
+```
 
 ---
 
-## Créditos
+# Estructura del Proyecto
 
-**Curso:** Aplicaciones en Sistemas Embebidos  
-**Institución:** Fundación Universitaria Compensar  
-**Docente:** Diego Alejandro Barragán Vargas — Ingeniero Electrónico, Magíster en Ingeniería (UDFJC)
-**Alumnos:** Lina Contreras, Brandon Andres Leon, Samuel Rojas, Luis Naranjo, Carlos Castro y Karen Rivera
+```text
+CasaInteligente/
+│
+├── app.py
+├── templates/
+│   └── index.html
+├── static/
+│   └── style.css
+├── vosk-model-small-es-0.42/
+└── README.md
+```
 
+---
 
+# Resultados Obtenidos
+
+El proyecto logró:
+
+* automatización funcional,
+* reconocimiento de voz offline,
+* monitoreo web,
+* integración embebida,
+* arquitectura modular,
+* y control distribuido de múltiples zonas.
+
+La plataforma demostró estabilidad funcional y capacidad de expansión para futuras implementaciones IoT.
+
+---
+
+# Conclusiones
+
+El proyecto permitió integrar múltiples áreas de conocimiento:
+
+* sistemas embebidos,
+* inteligencia artificial,
+* IoT,
+* automatización,
+* electrónica,
+* y desarrollo web.
+
+La solución desarrollada demuestra la viabilidad de implementar sistemas domóticos inteligentes mediante tecnologías accesibles y arquitecturas escalables.
+
+Además, la separación modular entre:
+
+* procesamiento lógico,
+* reconocimiento de voz,
+* hardware embebido,
+* y monitoreo web,
+
+facilita el mantenimiento y la expansión futura del sistema.
+
+---
+
+### Video 
+
+https://youtube.com/shorts/s3X5MbV8rTk?feature=share
+---
+
+# Autores
+
+Karen Stefania Rivera Carrero
+
+Lina Marcela Contreras Sanabria
+
+Luis Alejandro Naranjo Garavito
+
+Carlos Alberto Castro Castillo
+
+Samuel Felipe Rojas Heredia
+
+Brandon Andres Leon Caro
+
+Proyecto desarrollado para: Diego Alejandro Barragan Vargas
+
+## Fundación Universitaria Compensar
+
+### Ingeniería de Telecomunicaciones
+
+### Asignatura: Sistemas Embebidos
